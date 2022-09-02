@@ -1,32 +1,22 @@
-name: Release
+name: JuicySF All
+
+defaults:
+  run:
+    shell: bash
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
-    tags:
-      - "v*"
+
+env:
+  dir_build: build
+  dir_source: .
+  type: Release
 
 jobs:
-  create_release:
-    name: Create release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_id: ${{ steps.draft_release.outputs.id }}
-      upload_url: ${{ steps.draft_release.outputs.upload_url }}
-    steps:
-      - name: Draft release
-        id: draft_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: true
-
-  build_release:
-    name: Build release
-    needs: create_release
+  build:
+    name: Build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -35,109 +25,100 @@ jobs:
           - os: ubuntu-latest
             name: linux
             generator: Unix Makefiles
-            path: ./build/Release
+            flags: -Denable-portaudio=1 -Denable-ladspa=1
+            install_deps: ~/deps
+            install_path: ~/juicydeps
+            path: ./build/JuicySFPlugin_artefacts/Release/VST3
           - os: macos-latest
             name: mac
-            generator: Xcode
-            path: ./build/Release
+            generator: Unix Makefiles
+            flags: -Denable-portaudio=0 -Denable-ladspa=0
+            install_deps: ~/deps
+            install_path: ~/juicydeps
+            path: ./build/JuicySFPlugin_artefacts/Release/VST3
           - os: windows-latest
             name: win
-            generator: Visual Studio 16 2019
-            path: ./build/Release
+            generator: Visual Studio 17 2022
+            flags: -Denable-jack=0 -Denable-pulseaudio=0 -Denable-ladspa=0 -Denable-dbus=0 -Denable-readline=0 -Denable-sdl2=0 -Denable-libinstpatch=0
+            install_deps: D:/deps
+            install_path: D:/juicydeps
+            path: ./build/JuicySFPlugin_artefacts/Release/VST3
     steps:
-      - name: Install Linux dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install cmake pkg-config gcc "libstdc++6" libx11-xcb-dev libxcb-util-dev libxcb-cursor-dev libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev libfontconfig1-dev libcairo2-dev libgtkmm-3.0-dev libsqlite3-dev libxcb-keysyms1-dev libasound2-dev
-
-      - name: Install macOS dependencies
-        if: matrix.os == 'macos-latest'
-        run: brew install cmake pkg-config
-
-      - name: Install Windows dependencies
-        if: matrix.os == 'windows-latest'
-        run: choco install cmake pkgconfiglite zip
-
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           submodules: recursive
 
-      - name: Build plugins
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
         run: |
+          sudo apt-get update && sudo apt-get install cmake-data cmake libglib2.0-0 libsndfile-dev libasound2-dev libjack-dev portaudio19-dev libsdl2-dev libpulse-dev libdbus-1-dev libsystemd-dev libinstpatch-dev libreadline-dev g++-7 g++-8 clang-7 clang-8 clang-9 clang-10 clang-tidy-10 ladspa-sdk
+
+      - name: Install macOS dependencies
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install fluidsynth pkg-config cmake pulseaudio portaudio jack dbus sdl2
+
+      - name: Install Windows dependencies
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir ${{ matrix.install_deps }}
+          cd ${{ matrix.install_deps }}
+          curl -LfsS -o gtk-bundle-dev.zip http://ftp.gnome.org/pub/gnome/binaries/win64/gtk+/2.22/gtk+-bundle_2.22.1-20101229_win64.zip
+          curl -LfsS -o libsndfile-dev.zip http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28-w64.zip
+          7z x -aos -- gtk-bundle-dev.zip
+          7z x -aos -- libsndfile-dev.zip
+          mv ./lib/libsndfile-1.lib ./lib/sndfile.lib
+          mv ./lib/libsndfile-1.def ./lib/sndfile.def
+          rm -rf C:/Strawberry/perl/bin/pkg-config*
+          echo "${{ matrix.install_deps }}/bin;${{ matrix.install_path }}/bin" >> $GITHUB_PATH
+
+      - name: Build JUCE dependency
+        run: |
+          cd JUCE
+          cmake -B cmake-build-install -DCMAKE_BUILD_TYPE="${{ env.type }}" -DCMAKE_INSTALL_PREFIX="${{ matrix.install_path }}"
+          cmake --build cmake-build-install --target install
+
+      - name: Build Fluidsynth dependency
+        run: |
+          cd fluidsynth
           cmake \
             -G "${{ matrix.generator }}" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DJUCE_BUILD_EXAMPLES=OFF \
-            -DJUCE_BUILD_EXTRAS=OFF \
-            -S ./ \
-            -B ./build
-          cmake --build ./build --config Release --target JuicySFPlugin_VST3
+            -DCMAKE_BUILD_TYPE="${{ env.type }}" \
+            -DCMAKE_INSTALL_PREFIX="${{ matrix.install_path }}" \
+            -DCMAKE_VERBOSE_MAKEFILE=1 \
+            -DNO_GUI=1 \
+            ${{ matrix.flags }} \
+            -S "${{ env.dir_source }}" \
+            -B "${{ env.dir_build }}"
+          cmake --build ${{ env.dir_build }} --config ${{ env.type }} --target install
 
-      - name: List files
-        run: ls "${{ matrix.path }}"
-
-      - name: Metadata
+      - name: Copy Fluidsynth dependency
+        if: matrix.os == 'windows-latest'
         run: |
-          npm install @studiorack/cli -g
-          cp -v ./src/assets/* "${{ matrix.path }}"
-          studiorack validate "${{ matrix.path }}/**/*.{vst,vst3}" --files --json --txt --zip --summary
+          ls "fluidsynth/${{ env.dir_build }}/src/Release"
+          mkdir -p "${{ env.dir_build }}"
+          cp "fluidsynth/${{ env.dir_build }}/src/Release/fluidsynth.lib" "${{ env.dir_build }}"
 
-      - name: Upload
-        uses: actions/github-script@v3
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const path = require('path');
-            const fs = require('fs');
-            const release_id = '${{ needs.create_release.outputs.upload_id }}';
-            for (let file of await fs.readdirSync('${{ matrix.path }}')) {
-              if (path.extname(file) === '.zip') {
-                console.log('upload zip', `${{ matrix.path }}/${file}`);
-                await github.repos.uploadReleaseAsset({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  release_id: release_id,
-                  name: `${path.basename(file, path.extname(file))}-${{ matrix.name }}.zip`,
-                  data: await fs.readFileSync(`${{ matrix.path }}/${file}`)
-                });
-                if ("${{ matrix.os }}" == 'macos-latest') {
-                  console.log('upload png', `${{ matrix.path }}/${path.basename(file, path.extname(file))}.png`);
-                  await github.repos.uploadReleaseAsset({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    release_id: release_id,
-                    name: `${path.basename(file, path.extname(file))}.png`,
-                    data: await fs.readFileSync(`${{ matrix.path }}/${path.basename(file, path.extname(file))}.png`)
-                  });
-                  console.log('upload wav', `${{ matrix.path }}/${path.basename(file, path.extname(file))}.wav`);
-                  await github.repos.uploadReleaseAsset({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    release_id: release_id,
-                    name: `${path.basename(file, path.extname(file))}.wav`,
-                    data: await fs.readFileSync(`${{ matrix.path }}/${path.basename(file, path.extname(file))}.wav`)
-                  });
-                }
-              }
-            }
-      - name: Upload metadata
-        if: matrix.os == 'macos-latest'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ${{ matrix.path }}/plugins.json
-          asset_name: plugins.json
-          asset_content_type: application/json
+      - name: Build JuicySF
+        run: |
+          PKG_CONFIG_PATH="${{ matrix.install_path }}/lib/pkgconfig;${{ matrix.install_deps }}/lib/pkgconfig;$PKG_CONFIG_PATH" \
+          cmake \
+            -G "${{ matrix.generator }}" \
+            -DCMAKE_BUILD_TYPE="${{ env.type }}" \
+            -DCMAKE_PREFIX_PATH="${{ matrix.install_path }};${{ matrix.install_deps }}" \
+            -DVST3_COPY_DIR="final" \
+            -S "${{ env.dir_source }}" \
+            -B "${{ env.dir_build }}"
+          PKG_CONFIG_PATH="${{ matrix.install_path }}/lib/pkgconfig;${{ matrix.install_deps }}/lib/pkgconfig;$PKG_CONFIG_PATH" \
+          cmake --build ${{ env.dir_build }} --config ${{ env.type }} --target JuicySFPlugin_VST3
 
-  publish_release:
-    name: Publish release
-    needs: [create_release, build_release]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: eregon/publish-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        release_id: ${{ needs.create_release.outputs.upload_id }}
+      - name: List files generated
+        run: |
+          cd ${{ matrix.path }}
+          find "$(pwd)"
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: fluidsynth-${{ matrix.name }}
+          path: ${{ matrix.path }}
