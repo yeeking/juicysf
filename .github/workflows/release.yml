@@ -63,7 +63,7 @@ jobs:
             name: mac
             generator: Unix Makefiles
             flags: |
-              -DBUILD_SHARED_LIBS=off \
+              -DBUILD_SHARED_LIBS=on \
               -Denable-portaudio=off \
               -Denable-dbus=off \
               -Denable-aufile=off \
