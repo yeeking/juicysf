@@ -58,7 +58,7 @@ jobs:
               -Denable-systemd=off \
             install_deps: ~/deps
             install_path: ~/juicydeps
-            path: ./build/JuicySFPlugin_artefacts/Release/VST3
+            path: ./build/JuicySFPlugin_artefacts/Release
           - os: macos-latest
             name: mac
             generator: Unix Makefiles
@@ -95,14 +95,14 @@ jobs:
               -Denable-systemd=off \
             install_deps: ~/deps
             install_path: ~/juicydeps
-            path: ./build/JuicySFPlugin_artefacts/Release/VST3
+            path: ./build/JuicySFPlugin_artefacts/Release
           - os: windows-latest
             name: win
             generator: Visual Studio 17 2022
             flags: -Denable-jack=0 -Denable-pulseaudio=0 -Denable-ladspa=0 -Denable-dbus=0 -Denable-readline=0 -Denable-sdl2=0 -Denable-libinstpatch=0
             install_deps: D:/deps
             install_path: D:/juicydeps
-            path: ./build/JuicySFPlugin_artefacts/Release/VST3
+            path: ./build/JuicySFPlugin_artefacts/Release
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -171,7 +171,7 @@ jobs:
             -S "${{ env.dir_source }}" \
             -B "${{ env.dir_build }}"
           PKG_CONFIG_PATH="${{ matrix.install_path }}/lib/pkgconfig;${{ matrix.install_deps }}/lib/pkgconfig;$PKG_CONFIG_PATH" \
-          cmake --build ${{ env.dir_build }} --config ${{ env.type }} --target JuicySFPlugin_VST3
+          cmake --build ${{ env.dir_build }} --config ${{ env.type }}
 
       - name: List files generated
         run: |
