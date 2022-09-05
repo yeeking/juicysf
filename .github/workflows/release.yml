@@ -25,14 +25,74 @@ jobs:
           - os: ubuntu-latest
             name: linux
             generator: Unix Makefiles
-            flags: -Denable-portaudio=1 -Denable-ladspa=1
+            flags: |
+              -DBUILD_SHARED_LIBS=off \
+              -Denable-portaudio=off \
+              -Denable-dbus=off \
+              -Denable-aufile=off \
+              -Denable-ipv6=off \
+              -Denable-jack=off \
+              -Denable-ladspa=off \
+              -Denable-libinstpatch=off \
+              -Denable-libsndfile=on \
+              -Denable-midishare=off \
+              -Denable-opensles=off \
+              -Denable-oboe=off \
+              -Denable-network=off \
+              -Denable-oss=off \
+              -Denable-dsound=off \
+              -Denable-wasapi=off \
+              -Denable-waveout=off \
+              -Denable-winmidi=off \
+              -Denable-sdl2=off \
+              -Denable-pkgconfig=on \
+              -Denable-pulseaudio=off \
+              -Denable-readline=off \
+              -Denable-threads=on \
+              -Denable-openmp=on \
+              -Denable-coreaudio=off \
+              -Denable-coremidi=off \
+              -Denable-framework=off \
+              -Denable-lash=off \
+              -Denable-alsa=off \
+              -Denable-systemd=off \
             install_deps: ~/deps
             install_path: ~/juicydeps
             path: ./build/JuicySFPlugin_artefacts/Release/VST3
           - os: macos-latest
             name: mac
             generator: Unix Makefiles
-            flags: -Denable-portaudio=0 -Denable-ladspa=0
+            flags: |
+              -DBUILD_SHARED_LIBS=off \
+              -Denable-portaudio=off \
+              -Denable-dbus=off \
+              -Denable-aufile=off \
+              -Denable-ipv6=off \
+              -Denable-jack=off \
+              -Denable-ladspa=off \
+              -Denable-libinstpatch=off \
+              -Denable-libsndfile=on \
+              -Denable-midishare=off \
+              -Denable-opensles=off \
+              -Denable-oboe=off \
+              -Denable-network=off \
+              -Denable-oss=off \
+              -Denable-dsound=off \
+              -Denable-wasapi=off \
+              -Denable-waveout=off \
+              -Denable-winmidi=off \
+              -Denable-sdl2=off \
+              -Denable-pkgconfig=on \
+              -Denable-pulseaudio=off \
+              -Denable-readline=off \
+              -Denable-threads=on \
+              -Denable-openmp=on \
+              -Denable-coreaudio=off \
+              -Denable-coremidi=off \
+              -Denable-framework=off \
+              -Denable-lash=off \
+              -Denable-alsa=off \
+              -Denable-systemd=off \
             install_deps: ~/deps
             install_path: ~/juicydeps
             path: ./build/JuicySFPlugin_artefacts/Release/VST3
