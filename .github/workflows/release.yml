@@ -52,7 +52,7 @@ jobs:
               -Denable-openmp=on \
               -Denable-coreaudio=off \
               -Denable-coremidi=off \
-              -Denable-framework=off \
+              -Denable-framework=on \
               -Denable-lash=off \
               -Denable-alsa=off \
               -Denable-systemd=off \
@@ -89,7 +89,7 @@ jobs:
               -Denable-openmp=on \
               -Denable-coreaudio=off \
               -Denable-coremidi=off \
-              -Denable-framework=off \
+              -Denable-framework=on \
               -Denable-lash=off \
               -Denable-alsa=off \
               -Denable-systemd=off \
