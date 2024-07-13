@@ -112,12 +112,12 @@ jobs:
       - name: Install Linux dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update && sudo apt-get install cmake-data cmake libglib2.0-0 libsndfile-dev libasound2-dev libjack-jackd2-dev portaudio19-dev libsdl2-dev libpulse-dev libdbus-1-dev libsystemd-dev libinstpatch-dev libreadline-dev g++ clang clang-tidy ladspa-sdk
+          sudo apt-get update && sudo apt-get install cmake-data cmake libglib2.0-0 libsndfile-dev libasound2-dev libjack-jackd2-dev portaudio19-dev libsdl2-dev libpulse-dev libdbus-1-dev libsystemd-dev libinstpatch-dev libreadline-dev g++ clang clang-tidy ladspa-sdk libfluidsynth-dev
 
       - name: Install macOS dependencies
         if: matrix.os == 'macos-latest'
         run: |
-          brew install fluidsynth pkg-config cmake pulseaudio portaudio jack dbus sdl2
+          brew install fluid-synth pkg-config cmake pulseaudio portaudio jack dbus sdl2
 
       - name: Install Windows dependencies
         if: matrix.os == 'windows-latest'
