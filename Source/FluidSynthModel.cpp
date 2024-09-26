@@ -425,13 +425,21 @@ void FluidSynthModel::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     // fluid_synth_get_cc(fluidSynth, 0, 73, &pval);
     // Logger::outputDebugString ( juce::String::formatted("hey: %d\n", pval) );
 
-    fluid_synth_process(
-        synth.get(),
-        buffer.getNumSamples(),
-        0,
-        nullptr,
-        buffer.getNumChannels(),
-        buffer.getArrayOfWritePointers());
+    // fluid_synth_process(
+    //     synth.get(),
+    //     buffer.getNumSamples(),
+    //     0,
+    //     nullptr,
+    //     buffer.getNumChannels(),
+    //     buffer.getArrayOfWritePointers());
+
+        fluid_synth_process(
+            synth.get(),
+            buffer.getNumSamples(),
+            0,
+            nullptr,
+            buffer.getNumChannels(),
+            const_cast<float**>(buffer.getArrayOfWritePointers()));
 }
 
 int FluidSynthModel::getNumPrograms()
