@@ -1,12 +1,12 @@
 target_sources(JuicySFPlugin
     PRIVATE
-        FilePicker.cpp
-        FluidSynthModel.cpp
-        MyColours.cpp
-        Pills.cpp
-        PluginEditor.cpp
-        PluginProcessor.cpp
-        SlidersComponent.cpp
-        SurjectiveMidiKeyboardComponent.cpp
-        TableComponent.cpp
-        TablesComponent.cpp)
+        ${CMAKE_CURRENT_LIST_DIR}/FilePicker.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/FluidSynthModel.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/MyColours.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Pills.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/PluginEditor.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/PluginProcessor.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/SlidersComponent.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/SurjectiveMidiKeyboardComponent.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/TableComponent.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/TablesComponent.cpp)

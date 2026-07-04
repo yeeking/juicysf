@@ -9,7 +9,7 @@
 # CMake's behaviour is compatible with the named version. This is a standard CMake command, so more
 # information can be found in the CMake docs.
 
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.6)
 
 # The top-level CMakeLists.txt file for a project must contain a literal, direct call to the
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
@@ -17,8 +17,8 @@ cmake_minimum_required(VERSION 3.15)
 
 project(JUICY_SF_PLUGIN VERSION 3.0.0)
 
-#set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
 # target), you'll need to tell this project that it depends on the installed copy of JUCE. If you've
@@ -99,7 +99,7 @@ juce_add_plugin(JuicySFPlugin
     NEEDS_MIDI_OUTPUT FALSE              # Does the plugin need midi output?
     IS_MIDI_EFFECT FALSE                 # Is this plugin a MIDI effect?
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE    # Does the editor need keyboard focus?
-    COPY_PLUGIN_AFTER_BUILD TRUE        # Should the plugin be installed to a default location after building?
+    COPY_PLUGIN_AFTER_BUILD FALSE       # Keep build artefacts in the build tree.
     APP_SANDBOX_ENABLED TRUE
     APP_SANDBOX_OPTIONS com.apple.security.files.user-selected.read-only
     HARDENED_RUNTIME_ENABLED TRUE
